@@ -83,3 +83,7 @@ If you wish to host this project yourself, you will need to deploy the frontend 
    ```
 2. **Hosting:** Deploy the `/App` directory (or specifically the `dist` folder generated after the build) to static hosting services like [Vercel](https://vercel.com), [Netlify](https://netlify.com), or GitHub Pages.
 3. **API Configuration:** Make sure your frontend API requests and WebSocket connections point to your deployed backend URL instead of `localhost:8080`.
+
+
+### See a Bug? or want to add a new feature
+feel free to fork the project, update it and start a pull request.
