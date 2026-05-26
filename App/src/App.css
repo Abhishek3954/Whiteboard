@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.chat{
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 6%;
+    right: 2%;
+    border: 3px solid black;
+    padding: 5px;
+    max-height: 50vh;
+    width: 300px;
+}
+
+.chatList{
+    list-style: none;
+    padding: 0;
+    margin: 2px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.chatItems{
+    margin-left: 0px;
+    
+}
+
+.backBtn{
+    max-width: 10%;
+}
+
+.chatHeading{
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.timer-bar {
+  height: 100%;
+  width: 100%;
+  background: orangered;
+  border-radius: 2px;
+  animation: shrink 4s linear forwards;
+}
+
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.confirmPopup{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    color: #333;
+    padding: 24px 32px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    text-align: center;
+}
