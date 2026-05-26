@@ -45,7 +45,7 @@ npm install
 
 Create a `.env` file in the `server` directory and add your MongoDB connection strings:
 ```env
-mongoLocalURL="mongodb://127.0.0.1:27017/whiteboard"
+mongoLocalURL="mongodb://127.0.0.1:27017/"
 # Optional: If you prefer using Atlas locally
 # mongoAtlasURL="your_mongodb_atlas_connection_string"
 ```
