@@ -21,7 +21,8 @@ export function SocketProvider({ children }) {
   const [pencilColor, setPencilColor] = useState('#000000');
   const [eraserWidth, setEraserWidth] = useState(4);
   const [highlighterWidth, setHighlighterWidth] = useState(4);
-  const [highlighterColor, setHighlighterColor] = useState('#FFFF00')
+  const [highlighterColor, setHighlighterColor] = useState('#FFFF00');
+  const [tool, setTool] = useState('drag');
 
   // Authorized tools
   const [allowPencil, setAllowPencil] = useState(true);
@@ -144,7 +145,6 @@ export function SocketProvider({ children }) {
   }
   
   const handleSendMessage = (message) => {
-    // if (!ws || ws.readyState !== ws.OPEN) console.error('socket not connected');
     if (!message) { console.error('cannot send empty message'); return; };
     ws.current.send(JSON.stringify({ type: 'message', text: message }));
     setMessages((prev) => [...prev, { name: username, id: colorId, text: message }]);
@@ -201,7 +201,7 @@ export function SocketProvider({ children }) {
       checkCode, code, memberNames, host, setHost, canvasChange, preview, pencilColor,
       pencilWidth, setPencilColor, setPencilWidth, strokes, eraserWidth, setEraserWidth, highlighterWidth, setHighlighterWidth,
       highlighterColor, setHighlighterColor, undoStack, redoStack, handleUndo, handleRedo, handleClear, allowPencil,
-      allowHighlighter, allowEraser, allowClear, updatePermission
+      allowHighlighter, allowEraser, allowClear, updatePermission, tool, setTool
     }}>
       {children}
     </SocketContext.Provider>

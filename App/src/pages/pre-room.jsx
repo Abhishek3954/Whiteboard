@@ -32,7 +32,7 @@ export default function Preroom({onBack, onSuccess}) {
   
   return (
     <div className='h-screen bg-slate-800 flex flex-col justify-center items-center'>
-      <button className='className="font-bold text-3xl bg-red-500 hover:bg-red-400 active:bg-red-600 rounded-lg transition-all mb-5 px-4 w-52'
+      <button className='font-bold text-3xl bg-red-500 hover:bg-red-400 active:bg-red-600 rounded-lg transition-all mb-5 px-4 w-52'
         onClick={onBack}>Go Back</button>
       
       <div>
@@ -44,7 +44,6 @@ export default function Preroom({onBack, onSuccess}) {
       <button className="bg-indigo-200 text-indigo-600 px-6 py-2 rounded-lg font-medium hover:bg-indigo-100 transition-all w-52 mb-4"
         onClick={handleSubmit}>Enter</button>
       <p>{error}</p>
-      {/* handleSocket();*/}
     </div>
   )
 }

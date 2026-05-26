@@ -17,11 +17,9 @@ app.use(cors({
 const server = createServer(app);
 initSocket(server);
 
-const localURL = process.env.mongoLocalURL;
+const mongoURL = process.env.mongoURL;
 
-const atlasURL = process.env.mongoAtlasURL;
-
-mongoose.connect(localURL)
+mongoose.connect(mongoURL)
   .then(() => { console.log('mongodb connected') })
   .catch((err) => { console.error('an error occured', err) })
 
@@ -113,31 +111,12 @@ app.get('/checkCode/:code', async (req, res) => {
   }
 })
 
-app.delete('/deleteCode/:username', async (req, res) => {
-  try {
-    const name = req.params.username;
-    const doc = await Code.findOne({ name: name })
-    if (!doc) throw new Error('Code not Found');
-    const response = await Code.findOneAndDelete({ name: name });
-    if (response === null) return;
-    
-  }
-  catch (err) {
-    console.log(err.message);
-    res.json({ message: err.message });
-  }
-})
-
 export const deleteRoom = async (roomCode) => {
   try {
-    const code = roomCode;
-    const response = await Code.findOneAndDelete({ code: code });
-    if (response === null) return;
-    
+    await Code.findOneAndDelete({ code: roomCode });  
   }
   catch (err) {
     console.log(err.message);
-    res.json({ message: err.message });
   }
 }
 

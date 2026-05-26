@@ -62,15 +62,10 @@ export function AuthProvider({children}) {
     }
   }
   
-  
-  const deleteCode = async () => {
-    await fetch(`http://localhost:8080/deleteCode/${username}`, {method: 'DELETE'});
-  }
-  
   return (
     <AuthContext.Provider value={{
       username, signupError, loginError, signupMessage, loginMessage,
-      handleSignupSubmit, handleLoginSubmit, handleLogout, generateKey, deleteCode
+      handleSignupSubmit, handleLoginSubmit, handleLogout, generateKey
     }}>
       {children}
     </AuthContext.Provider>

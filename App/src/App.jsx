@@ -9,7 +9,6 @@ import Host from './pages/host.jsx'
 import Preroom from './pages/pre-room.jsx';
 import { AuthProvider } from './context/AuthContext.jsx'
 import { SocketProvider, useSocket } from './context/SocketContext.jsx';
-import { RoomProvider } from './context/RoomContext.jsx';
 
 function Views() {
   const [view, setView] = useState(() => {
@@ -18,7 +17,6 @@ function Views() {
   })
   
   function setViewAndSave(newView) {
-    // sessionStorage.setItem('user', JSON.stringify({ view: '' }));
     const existingUser = JSON.parse(sessionStorage.getItem('user')) || {};
     const updatedUser = { ...existingUser, view: newView };
     sessionStorage.setItem('user', JSON.stringify(updatedUser));
@@ -45,9 +43,7 @@ function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <RoomProvider>
           <Views />
-        </RoomProvider>
       </SocketProvider>
     </AuthProvider>
   )

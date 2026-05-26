@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { useSocket } from '../context/SocketContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useRoom } from '../context/RoomContext.jsx';
 
 const colors = [
   "#b91c1c", "#c2410c", "#b45309", "#15803d", "#047857",
@@ -26,9 +25,8 @@ function Room({ onBack }) {
     pencilColor, setPencilColor, strokes, eraserWidth, setEraserWidth,
     highlighterColor, setHighlighterColor, highlighterWidth, setHighlighterWidth,
     undoStack, redoStack, handleUndo, handleRedo, handleClear, allowPencil,
-    allowHighlighter, allowEraser, allowClear, updatePermission} = useSocket();
+    allowHighlighter, allowEraser, allowClear, updatePermission, tool, setTool} = useSocket();
   
-  const { tool, setTool } = useRoom();
   const { generateKey, username } = useAuth();
   const inputRef = useRef(null);
   const [loading, setLoading] = useState(false);
@@ -63,7 +61,7 @@ function Room({ onBack }) {
   // To send text messages
   const handleMessage = () => {
     handleSendMessage(inputRef.current.value)
-    document.getElementById('roomInput').value = '';
+    inputRef.current.value = '';
   }
 
   const handleCopy = () => {
@@ -583,9 +581,9 @@ function Room({ onBack }) {
         <p className='text-2xl'>You are the Host, If you exit, a new Host will be choosen.<br />
           Are you Sure you want to Exit</p>
         <br />
-        <button className='text-2xl bg-blue-300 px-2 hover:bg-blue-200 tras=nsition-all mr-8'
+        <button className='text-2xl bg-blue-300 px-2 hover:bg-blue-200 transition-all mr-8'
           onClick={() => { setConfirmPopup(false) }}>No</button>
-        <button className='text-2xl bg-red-300 px-2 hover:bg-red-200 tras=nsition-all mr-8'
+        <button className='text-2xl bg-red-300 px-2 hover:bg-red-200 transition-all mr-8'
           onClick={() => {
             const existingUser = JSON.parse(sessionStorage.getItem('user'));
             delete existingUser.title;

@@ -57,17 +57,9 @@ function initSocket(server) {
         })
 
         // Sends Initial Tool Authority data to non-Hosts
-        wss.clients.forEach(client => {
-          if (client.readyState === 1 && client.room === ws.room && client.isHost === false) {
-            client.send(JSON.stringify({
-              type: 'tools',
-              pencil: true,
-              highlighter: true,
-              eraser: false,
-              clear: false
-            }))
-          }
-        })
+        if (!ws.isHost) {
+          ws.send(JSON.stringify({ type: 'tools', pencil: true, highlighter: true, eraser: false, clear: false }));
+        }
 
         ws.send(JSON.stringify({
           type: 'syncStrokes',
@@ -95,7 +87,7 @@ function initSocket(server) {
       if (['preview', 'fullStroke', 'erase', 'undo', 'redo', 'clear'].includes(data.type)) {
         const room = rooms[ws.room]
         if (data.type === 'fullStroke') room.strokes.push(data);
-        if (data.type === 'undo') { room.strokes = room.strokes.filter(i => { i.id !== data.id }) };
+        if (data.type === 'undo') { room.strokes = room.strokes.filter(i =>  i.id !== data.id ) };
         if (data.type === 'redo') room.strokes.push(data.stroke);
         if (data.type === 'clear') room.strokes = [];
         wss.clients.forEach((client) => {
@@ -197,10 +189,6 @@ function initSocket(server) {
     });
   }, 20000)
   
-  //draw
-  
 };
 
-const getWss = () => wss;
-
-export { initSocket, getWss };
+export { initSocket };
