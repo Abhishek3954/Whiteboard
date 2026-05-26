@@ -1,8 +1,17 @@
-# Whiteboard Learning Project
+# Whiteboard
 
 This is a collaborative whiteboard application built as a learning project to explore WebSockets and the HTML5 Canvas API. **This is just a learning project, not a real production-ready utility.**
 
 ![screenshot](App/public/screenshot-main.png)
+
+## Features
+
+- ✏️ Live Drawing
+- 💬 Live chat
+- 👑 Host permissions (enable and disable members from using specific tools)
+- ⏪/⏩ Undo/Redo
+- 🖍️ Highlighter
+- 🧽 Eraser
 
 ## Tools Used
 
@@ -14,9 +23,9 @@ This is a collaborative whiteboard application built as a learning project to ex
 
 ### Backend (`/server`)
 - **Node.js & Express.js** - Server framework
-- **Socket.io / ws** - WebSocket communication for real-time drawing
-- **MongoDB (Mongoose)** - Database for users and session rooms
-- **bcrypt** - Password hashing
+- **ws** - WebSocket communication for real-time drawing and chat
+- **MongoDB** - Database for users and session rooms
+- **bcrypt** - for Hashing passwords
 
 ## How to Run Locally
 
