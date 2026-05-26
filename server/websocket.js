@@ -5,7 +5,7 @@ let wss = null;
 const rooms = {};
 
 function initSocket(server) {
-  wss = new WebSocketServer({ server, path: '/poop' })
+  wss = new WebSocketServer({ server, path: '/ws' })
   
   wss.on('connection', (ws) => {
     ws.name = null;

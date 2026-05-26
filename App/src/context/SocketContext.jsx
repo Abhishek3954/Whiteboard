@@ -97,7 +97,7 @@ export function SocketProvider({ children }) {
     setColorId(null);
     setMemberNames([]);
     
-    ws.current = new WebSocket(`${wsURL}/poop`)
+    ws.current = new WebSocket(`${wsURL}/ws`)
     ws.current.onopen = () => {
       const user = JSON.parse(sessionStorage.getItem('user'));
       if (user.title === 'host') {
