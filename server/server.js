@@ -120,4 +120,4 @@ export const deleteRoom = async (roomCode) => {
   }
 }
 
-server.listen(8080, ()=>{console.log('Running on localhost:8080')});
+server.listen(process.env.PORT || 8080, ()=>{console.log(`running on port ${process.env.PORT}`)});

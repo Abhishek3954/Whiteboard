@@ -1,5 +1,6 @@
 import { signupApi, loginApi } from '../api/auth.jsx'
 import { createContext, useState, useContext } from 'react';
+import { baseURL } from '../constants/index.js';
 
 const AuthContext = createContext();
 
@@ -51,7 +52,7 @@ export function AuthProvider({children}) {
   
   const generateKey = async () => {
     try {
-      const response = await fetch(`http://localhost:8080/hostCode/${username}`);
+      const response = await fetch(`${baseURL}/hostCode/${username}`);
       if (!response.ok) throw new Error('Generate key response failed');
       const data = await response.text();
       return data;

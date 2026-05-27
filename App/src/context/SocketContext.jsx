@@ -1,5 +1,5 @@
 import {createContext, useRef, useContext, useState } from 'react';
-import { wsURL } from '../constants/index.js';
+import { wsURL, baseURL } from '../constants/index.js';
 import { useAuth } from './AuthContext.jsx'
 
 const SocketContext = createContext();
@@ -76,7 +76,7 @@ export function SocketProvider({ children }) {
   
   const checkCode = async (code) => {
     try {
-      const response = await fetch(`http://localhost:8080/checkCode/${code}`);
+      const response = await fetch(`${baseURL}/checkCode/${code}`);
       if (!response.ok) throw new Error('Invalid Code')
       const data = await response.json();
       handleSocket(data.code);
