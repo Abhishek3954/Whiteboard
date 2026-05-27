@@ -42,6 +42,18 @@ function Room({ onBack }) {
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(true);
 
+  const pinchStartDist = useRef(null);
+  const pinchStartZoom = useRef(1);
+  const isPinching = useRef(false);
+
+  const pencilWidthRef = useRef(pencilWidth);
+  const pencilColorRef = useRef(pencilColor);
+  const eraserWidthRef = useRef(eraserWidth);
+  const highlighterWidthRef = useRef(highlighterWidth);
+  const highlighterColorRef = useRef(highlighterColor);
+  const toolRef = useRef(tool);
+  const zoomRef = useRef(zoom);
+
   // CanvasReferences
   const canvasRef = useRef(null);
   const localCanvasRef = useRef(null);
@@ -54,6 +66,14 @@ function Room({ onBack }) {
   const lastEmit = useRef(0);
   const previewStroke = useRef([]);
   const fullStroke = useRef([]);
+
+  useEffect(() => { pencilWidthRef.current = pencilWidth; }, [pencilWidth]);
+  useEffect(() => { pencilColorRef.current = pencilColor; }, [pencilColor]);
+  useEffect(() => { eraserWidthRef.current = eraserWidth; }, [eraserWidth]);
+  useEffect(() => { highlighterWidthRef.current = highlighterWidth; }, [highlighterWidth]);
+  useEffect(() => { highlighterColorRef.current = highlighterColor; }, [highlighterColor]);
+  useEffect(() => { toolRef.current = tool; }, [tool]);
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
   //Preview Canvas
   const previewCanvasRef = useRef(null);
@@ -158,52 +178,51 @@ function Room({ onBack }) {
       ctx.globalCompositeOperation = 'source-over';
     });
   }, [strokes]);
-  
+
   const getPos = (e) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
     const rect = canvasRef.current.getBoundingClientRect();
     const source = e.touches ? e.touches[0] : e;
-
-    const clientX = source.clientX - rect.left;
-    const clientY = source.clientY - rect.top;
-
-    const x = clientX / zoom;
-    const y = clientY / zoom;
-
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    const x = (source.clientX - rect.left) * scaleX;
+    const y = (source.clientY - rect.top) * scaleY;
     return { x, y };
   };
 
   // Handles Drawing
   const startDrawing = (e) => {
-    if (tool !== 'pencil' && tool !== 'highlighter') return;
-      
+    const currentTool = toolRef.current;
+    if (currentTool !== 'pencil' && currentTool !== 'highlighter') return;
+
     const canvas = localCanvasRef.current;
     const ctx = canvas.getContext('2d');
-    const isH = tool === 'highlighter';
-    
-    ctx.strokeStyle = isH ? highlighterColor : pencilColor;
-    ctx.lineWidth   = isH ? highlighterWidth : pencilWidth;
+    const isH = currentTool === 'highlighter';
+
+    ctx.strokeStyle = isH ? highlighterColorRef.current : pencilColorRef.current;
+    ctx.lineWidth   = isH ? highlighterWidthRef.current : pencilWidthRef.current;
     ctx.globalAlpha = isH ? 0.3 : 1;
     ctx.globalCompositeOperation = isH ? 'multiply' : 'source-over';
     ctx.lineCap  = isH ? 'square' : 'round';
     ctx.lineJoin = 'round';
     ctx.beginPath();
-    
+
     ctxRef.current = ctx;
-    
+
     isDrawing.current = true;
     lastPos.current = getPos(e);
     previewStroke.current = [lastPos.current];
     fullStroke.current = [lastPos.current];
-    draw(e)
+    draw(e);
   };
 
   const draw = (e) => {
     if (!isDrawing.current) return;
-    if (tool !== 'pencil' && tool !== 'highlighter') return;
+    const currentTool = toolRef.current;
+    if (currentTool !== 'pencil' && currentTool !== 'highlighter') return;
     e.preventDefault();
 
-    const isH = tool === 'highlighter';
+    const isH = currentTool === 'highlighter';
     const ctx = ctxRef.current;
     const canvas = localCanvasRef.current;
     const pos = getPos(e);
@@ -225,20 +244,21 @@ function Room({ onBack }) {
       if (now - lastEmit.current >= 100) {
         const stroke = {
           type: 'preview',
-          tool: tool,
-          width: isH ? highlighterWidth : pencilWidth,
-          color: isH ? highlighterColor : pencilColor,
+          tool: currentTool,
+          width: isH ? highlighterWidthRef.current : pencilWidthRef.current,
+          color: isH ? highlighterColorRef.current : pencilColorRef.current,
           points: previewStroke.current
         }
         canvasChange(stroke);
         previewStroke.current = [previewStroke.current.at(-1)];
-        lastEmit.current = now
+        lastEmit.current = now;
       }
     }
   };
 
   const stopDrawing = () => {
-    if (tool !== 'pencil' && tool !== 'highlighter') return;
+    const currentTool = toolRef.current;
+    if (currentTool !== 'pencil' && currentTool !== 'highlighter') return;
     isDrawing.current = false;
     if (fullStroke.current.length < 2) return;
 
@@ -247,29 +267,28 @@ function Room({ onBack }) {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const isH = tool === 'highlighter';
+    const isH = currentTool === 'highlighter';
 
     const stroke = {
       type: 'fullStroke',
       id: crypto.randomUUID(),
       clientId: username,
-      tool: tool,
-      width: isH ? highlighterWidth : pencilWidth,
-      color: isH ? highlighterColor : pencilColor,
+      tool: currentTool,
+      width: isH ? highlighterWidthRef.current : pencilWidthRef.current,
+      color: isH ? highlighterColorRef.current : pencilColorRef.current,
       points: fullStroke.current,
       timestamp: Date.now()
     }
-    
+
     canvasChange(stroke);
     canvasChange({ type: 'preview', points: [] });
     fullStroke.current = [];
-    
   };
 
   // Handle Eraser
   
   const startErasing = (e) => {
-    if (tool !== 'eraser') return;
+    if (toolRef.current !== 'eraser') return;
     isErasing.current = true;
     lastPos.current = getPos(e);
 
@@ -277,40 +296,39 @@ function Room({ onBack }) {
     const ctx = canvas.getContext('2d');
 
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = eraserWidth;
+    ctx.lineWidth = eraserWidthRef.current;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.beginPath();
 
-    ctxRef.current = ctx
-    
+    ctxRef.current = ctx;
+
     previewStroke.current = [lastPos.current];
-    fullStroke.current = [lastPos.current];    
+    fullStroke.current = [lastPos.current];
     erase(e);
   };
 
   const erase = (e) => {
-    if (!isErasing.current || tool !== 'eraser') return;
+    if (!isErasing.current || toolRef.current !== 'eraser') return;
     const pos = getPos(e);
-    
-    const ctx = ctxRef.current
-    
+
+    const ctx = ctxRef.current;
+
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
-  
+
     previewStroke.current.push(pos);
     fullStroke.current.push(pos);
-    lastPos.current = pos;  
-  
-    // live preview
+    lastPos.current = pos;
+
     if (memberNames.length < 6) {
       const now = Date.now();
       if (now - lastEmit.current >= 100) {
         canvasChange({
           type: 'preview',
           tool: 'eraser',
-          width: eraserWidth,
+          width: eraserWidthRef.current,
           color: '#ffffff',
           points: previewStroke.current
         });
@@ -329,14 +347,14 @@ function Room({ onBack }) {
     const canvas = localCanvasRef.current;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
     canvasChange({
       type: 'fullStroke',
       id: crypto.randomUUID(),
       clientId: username,
       tool: 'eraser',
       color: '#ffffff',
-      width: eraserWidth,
+      width: eraserWidthRef.current,
       points: fullStroke.current,
       timestamp: Date.now()
     });
@@ -383,44 +401,57 @@ function Room({ onBack }) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-  
+
     const handleTouchStart = (e) => {
       setHovered(null);
-      if (tool === 'pencil' || tool === 'highlighter' || tool === 'eraser') {
-        e.preventDefault();
-        if (tool === 'pencil' || tool === 'highlighter') startDrawing(e);
-        if (tool === 'eraser') startErasing(e);
+      const t = toolRef.current;
+      if (t === 'pencil' || t === 'highlighter' || t === 'eraser') {
+        if (e.touches.length === 1) {
+          e.preventDefault();
+          if (t === 'pencil' || t === 'highlighter') startDrawing(e);
+          if (t === 'eraser') startErasing(e);
+        }
       }
     };
-    
+
     const handleTouchMove = (e) => {
-      if (tool === 'pencil' || tool === 'highlighter' || tool === 'eraser') {
-        e.preventDefault();
-        if (tool === 'pencil' || tool === 'highlighter') draw(e);
-        if (tool === 'eraser') erase(e);
+      const t = toolRef.current;
+      if (t === 'pencil' || t === 'highlighter' || t === 'eraser') {
+        if (e.touches.length === 1) {
+          e.preventDefault();
+          if (t === 'pencil' || t === 'highlighter') draw(e);
+          if (t === 'eraser') erase(e);
+        }
       }
     };
 
     const handleTouchEnd = () => {
-      if (tool === 'pencil' || tool === 'highlighter') stopDrawing();
-      if (tool === 'eraser') stopErasing();
+      const t = toolRef.current;
+      if (t === 'pencil' || t === 'highlighter') stopDrawing();
+      if (t === 'eraser') stopErasing();
     };
-  
+
     canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
     canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
     canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
-  
+
     return () => {
       canvas.removeEventListener("touchstart", handleTouchStart);
       canvas.removeEventListener("touchmove", handleTouchMove);
-      canvas.removeEventListener("touchend", handleTouchEnd, { passive: false });
+      canvas.removeEventListener("touchend", handleTouchEnd);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoom, tool]);
+  }, []);
 
   const handleWheel = (e) => {
     e.preventDefault();
     setZoom((z) => Math.min(3, Math.max(0.1, z + (e.deltaY < 0 ? 0.1 : -0.1))));
+  };
+
+  const getTouchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
   };
 
   const handleMouseDown = (e) => {
@@ -437,8 +468,47 @@ function Room({ onBack }) {
     const container = containerRef.current;
     if (!container) return;
     container.addEventListener('wheel', handleWheel, { passive: false });
-    return () => container.removeEventListener('wheel', handleWheel);
-  }, []);
+
+    const handlePinchStart = (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        if (isDrawing.current) stopDrawing();
+        if (isErasing.current) stopErasing();
+        isPinching.current = true;
+        pinchStartDist.current = getTouchDistance(e.touches);
+        pinchStartZoom.current = zoomRef.current;
+      }
+    };
+
+    const handlePinchMove = (e) => {
+      if (e.touches.length === 2 && pinchStartDist.current !== null) {
+        e.preventDefault();
+        const currentDist = getTouchDistance(e.touches);
+        const scale = currentDist / pinchStartDist.current;
+        const newZoom = Math.min(3, Math.max(0.1, pinchStartZoom.current * scale));
+        setZoom(newZoom);
+      }
+    };
+
+    const handlePinchEnd = (e) => {
+      if (e.touches.length < 2) {
+        pinchStartDist.current = null;
+        isPinching.current = false;
+      }
+    };
+
+    container.addEventListener('touchstart', handlePinchStart, { passive: false });
+    container.addEventListener('touchmove', handlePinchMove, { passive: false });
+    container.addEventListener('touchend', handlePinchEnd, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('touchstart', handlePinchStart);
+      container.removeEventListener('touchmove', handlePinchMove);
+      container.removeEventListener('touchend', handlePinchEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
 
   // Updates when dragging changes to reflect drag
   useEffect(() => {
@@ -584,12 +654,12 @@ function Room({ onBack }) {
     const user = JSON.parse(sessionStorage.getItem('user'));
     if (user.title) {
       return <div className='confirmPopup' >
-        <p className='text-2xl'>You are the Host, If you exit, a new Host will be choosen.<br />
+        <p className='text-sm md:text-2xl'>You are the Host, If you exit, a new Host will be choosen.<br />
           Are you Sure you want to Exit</p>
         <br />
-        <button className='text-2xl bg-blue-300 px-2 hover:bg-blue-200 transition-all mr-8'
+        <button className='text-sm md:text-2xl bg-blue-300 px-2 hover:bg-blue-200 transition-all mr-4 md:mr-8'
           onClick={() => { setConfirmPopup(false) }}>No</button>
-        <button className='text-2xl bg-red-300 px-2 hover:bg-red-200 transition-all mr-8'
+        <button className='text-sm md:text-2xl bg-red-300 px-2 hover:bg-red-200 transition-all mr-4 md:mr-8'
           onClick={() => {
             const existingUser = JSON.parse(sessionStorage.getItem('user'));
             delete existingUser.title;
@@ -599,11 +669,11 @@ function Room({ onBack }) {
           }}>Yes</button>
       </div>
     }
-    return <div className='confirmPopup'><p>Are you Sure you want to Exit</p>
+    return <div className='confirmPopup'><p className='text-sm md:text-2xl'>Are you Sure you want to Exit</p>
       <br />
-      <button className='text-2xl bg-blue-300 px-2 hover:bg-blue-200 transition-all mr-8'
+      <button className='text-sm md:text-2xl bg-blue-300 px-2 hover:bg-blue-200 transition-all mr-4 md:mr-8'
         onClick={() => { setConfirmPopup(false) }}>No</button>
-      <button className='text-2xl bg-red-300 px-2 hover:bg-red-200 transition-all mr-8'
+      <button className='text-sm md:text-2xl bg-red-300 px-2 hover:bg-red-200 transition-all mr-4 md:mr-8'
         onClick={onBack}>Yes</button>
     </div>
   }
@@ -636,7 +706,7 @@ function Room({ onBack }) {
               height: '3000px',
               transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'center center',
-              transition: dragging ? 'none' : 'transform 0.15s ease-in-out',
+              transition: (dragging || isPinching.current) ? 'none' : 'transform 0.15s ease-in-out',
             }}
             onMouseDown={(e) => {
               setHovered(null);
@@ -671,8 +741,8 @@ function Room({ onBack }) {
             height: '3000px',
             transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: 'center center',
-            transition: dragging ? 'none' : 'transform 0.15s ease-in-out',
-            pointerEvents: 'none',  // clicks pass through to the canvas below
+            transition: (dragging || isPinching.current) ? 'none' : 'transform 0.15s ease-in-out',
+            pointerEvents: 'none',
             zIndex: 2,
           }}
         />
@@ -686,7 +756,7 @@ function Room({ onBack }) {
             height: '3000px',
             transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: 'center center',
-            transition: dragging ? 'none' : 'transform 0.15s ease-in-out',
+            transition: (dragging || isPinching.current) ? 'none' : 'transform 0.15s ease-in-out',
             pointerEvents: 'none',
             zIndex: 3,
           }}
@@ -710,15 +780,15 @@ function Room({ onBack }) {
          </button>
       </div>
 
-      <div className="fixed flex flex-row gap-1.5 md:gap-2 bottom-4 md:bottom-auto md:top-2 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md p-1.5 rounded-xl border border-slate-200 shadow-lg pointer-events-auto">
-      
+      <div className="fixed flex flex-col gap-1 md:flex-row md:gap-2 top-1/2 -translate-y-1/2 right-1 md:translate-y-0 md:top-2 md:right-auto md:left-1/2 md:-translate-x-1/2 z-40 bg-white/95 backdrop-blur-md p-1 md:p-1.5 rounded-xl border border-slate-200 shadow-lg pointer-events-auto">
+
         <div className="relative">
-          <button title="Drag" className={tool === 'drag' ? 'text-xl h-10 w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-xl h-10 w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
+          <button title="Drag" className={tool === 'drag' ? 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
             onClick={() => { toggleTool('drag'); setHovered(null); }}>🖱️</button>
         </div>
-      
+
         <div className="relative">
-          <button disabled={!allowPencil} className={tool === 'pencil' ? 'text-xl h-10 w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-xl h-10 w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
+          <button disabled={!allowPencil} className={tool === 'pencil' ? 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
             onClick={() => {
               if (tool === 'pencil') {
                 setHovered(hovered === 'pencil' ? null : 'pencil');
@@ -728,14 +798,14 @@ function Room({ onBack }) {
               }
             }}>✏️</button>
           {hovered === 'pencil' && (
-            <div className="absolute bottom-12 md:bottom-auto md:top-12 left-1/2 -translate-x-1/2 mt-2 z-50 shadow-xl">
+            <div className="absolute right-full top-0 mr-2 md:right-auto md:top-12 md:left-1/2 md:-translate-x-1/2 md:mr-0 md:mt-2 z-50 shadow-xl">
               {pencilMenu()}
             </div>
           )}
         </div>
-      
+
         <div className="relative">
-          <button disabled={!allowEraser} className={tool === 'eraser' ? 'text-xl h-10 w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-xl h-10 w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
+          <button disabled={!allowEraser} className={tool === 'eraser' ? 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
             onClick={() => {
               if (tool === 'eraser') {
                 setHovered(hovered === 'eraser' ? null : 'eraser');
@@ -745,14 +815,14 @@ function Room({ onBack }) {
               }
             }}>🧽</button>
           {hovered === 'eraser' && (
-            <div className="absolute bottom-12 md:bottom-auto md:top-12 left-1/2 -translate-x-1/2 mt-2 z-50 shadow-xl">
+            <div className="absolute right-full top-0 mr-2 md:right-auto md:top-12 md:left-1/2 md:-translate-x-1/2 md:mr-0 md:mt-2 z-50 shadow-xl">
               {eraserMenu()}
             </div>
           )}
         </div>
-      
+
         <div className="relative">
-          <button disabled={!allowHighlighter} className={tool === 'highlighter' ? 'text-xl h-10 w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-xl h-10 w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
+          <button disabled={!allowHighlighter} className={tool === 'highlighter' ? 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-blue-50 rounded-lg border-2 border-blue-500 pointer-events-auto shadow-sm' : 'text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto transition-all disabled:opacity-50 disabled:cursor-not-allowed'}
             onClick={() => {
               if (tool === 'highlighter') {
                 setHovered(hovered === 'highlighter' ? null : 'highlighter');
@@ -762,48 +832,48 @@ function Room({ onBack }) {
               }
             }}>🖍️</button>
           {hovered === 'highlighter' && (
-            <div className="absolute bottom-12 md:bottom-auto md:top-12 left-1/2 -translate-x-1/2 mt-2 z-50 shadow-xl">
+            <div className="absolute right-full top-0 mr-2 md:right-auto md:top-12 md:left-1/2 md:-translate-x-1/2 md:mr-0 md:mt-2 z-50 shadow-xl">
               {highlighterMenu()}
             </div>
           )}
         </div>
-      
+
         <div>
-          <button title="Undo" disabled={undoStack.length === 0} className="text-xl h-10 w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          <button title="Undo" disabled={undoStack.length === 0} className="text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => { handleUndo(); setHovered(null); }}>⏪</button>
         </div>
-      
+
         <div>
-          <button title="Redo" disabled={redoStack.length === 0} className="text-xl h-10 w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          <button title="Redo" disabled={redoStack.length === 0} className="text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => { handleRedo(); setHovered(null); }}>⏩</button>
         </div>
- 
+
         <div>
-          <button title="Clear" disabled={!allowClear} className="text-xl h-10 w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          <button title="Clear" disabled={!allowClear} className="text-sm md:text-xl h-7 w-7 md:h-10 md:w-10 flex items-center justify-center bg-white rounded-lg border border-slate-200 hover:bg-slate-50 shadow-sm pointer-events-auto disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => { handleClear(); setHovered(null); }}>🗑️</button>
         </div>
-      
+
       </div>
   
       {/* Overlay */}
       <div className='absolute inset-0 pointer-events-none' style={{ zIndex: 10 }}>
   
-        <div className='pointer-events-none'>
-          <button className='pointer-events-auto font-bold text-2xl bg-red-500 hover:bg-red-400 active:bg-red-600 rounded-lg transition-all mx-4 my-2 px-4 w-[90px]'
+        <div className='pointer-events-none mt-1 md:mt-14'>
+          <button className='pointer-events-auto font-bold text-xs md:text-2xl bg-red-500 hover:bg-red-400 active:bg-red-600 rounded-lg transition-all mx-2 md:mx-4 my-1 md:my-2 px-2 md:px-4'
             onClick={() => { setConfirmPopup(true); }}>Go Back</button>
-  
-          <h2 className='text-[16px] font-bold ml-4 mt-3 text-black'>{hostHeading}</h2>
-          <h3 className='font-bold text-[16px] ml-4 mt-2 mb-4 text-black flex items-center gap-1'>{loading ? 'Loading...' : `Host ID: ${key}`}
-            <button onClick={handleCopy} className='pointer-events-auto select-auto inline-flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 rounded p-1 ml-1 shadow-sm' title='Copy ID'>📃</button>
+
+          <h2 className='text-[10px] md:text-[16px] font-bold ml-2 md:ml-4 mt-1 md:mt-3 text-black'>{hostHeading}</h2>
+          <h3 className='font-bold text-[10px] md:text-[16px] ml-2 md:ml-4 mt-1 md:mt-2 mb-1 md:mb-4 text-black flex items-center gap-1'>{loading ? 'Loading...' : `ID: ${key}`}
+            <button onClick={handleCopy} className='pointer-events-auto select-auto inline-flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 rounded p-0.5 md:p-1 ml-1 shadow-sm text-[10px] md:text-base' title='Copy ID'>📃</button>
             {copied && (
-                <span className='ml-2 text-xs text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded border border-green-200/50'>
+                <span className='ml-1 text-[8px] md:text-xs text-green-600 font-medium bg-green-50 px-1 md:px-2 py-0.5 rounded border border-green-200/50'>
                   Copied!
                 </span>
               )}
           </h3>
-  
-          <div className='flex mb-3 ml-2'>
-            <p className='text-sm font-semibold bg-white border border-slate-200 shadow-sm rounded px-3 py-1 flex items-center'
+
+          <div className='flex mb-1 md:mb-3 ml-1 md:ml-2'>
+            <p className='text-[10px] md:text-sm font-semibold bg-white border border-slate-200 shadow-sm rounded px-1.5 md:px-3 py-0.5 md:py-1 flex items-center'
               style={{ color: colors[colorId - 1] }}>
               {username ? username : ''}</p>
           </div>
@@ -812,8 +882,8 @@ function Room({ onBack }) {
             const isCurrentUserHost = JSON.parse(sessionStorage.getItem('user'))?.title === 'host';
             
             return (
-              <div onMouseEnter={() => { if (isCurrentUserHost) setHovered('permissions');}} onMouseLeave={()=>{setHovered(null)}} key={index} className='relative flex w-fit pointer-events-auto mb-3 ml-2'>
-              <p className='text-sm font-semibold bg-white border border-slate-200 shadow-sm rounded px-3 py-1 flex items-center'
+              <div onMouseEnter={() => { if (isCurrentUserHost) setHovered('permissions');}} onMouseLeave={()=>{setHovered(null)}} key={index} className='relative flex w-fit pointer-events-auto mb-1 md:mb-3 ml-1 md:ml-2'>
+              <p className='text-[10px] md:text-sm font-semibold bg-white border border-slate-200 shadow-sm rounded px-1.5 md:px-3 py-0.5 md:py-1 flex items-center'
                 style={{ color: colors[object.color - 1] }}>
                   {object.isHost ? `👑 ${object.name}` : object.name}</p>
                 
@@ -874,12 +944,18 @@ function Room({ onBack }) {
   
         {confirmPopup && <div className='pointer-events-auto'>{popup()}</div>}
   
-        <div className='absolute bottom-[10px] right-[140px] pointer-events-auto'>
-          <button 
-            className='bg-slate-200 text-slate-700 hover:bg-slate-100 px-3 py-1 shadow-md text-sm font-bold transition-colors border-2 border-black'
+        <div className='absolute bottom-[10px] right-[140px] md:right-[140px] pointer-events-auto'>
+          <button
+            className='hidden md:inline-block bg-slate-200 text-slate-700 hover:bg-slate-100 px-3 py-1 shadow-md text-sm font-bold transition-colors border-2 border-black'
             onClick={() => setShowChat(!showChat)}
           >
             {showChat ? 'Hide Chat' : 'Show Chat'}
+          </button>
+          <button
+            className='md:hidden h-8 w-8 rounded-full bg-slate-200 text-slate-700 shadow-md text-xs font-bold border-2 border-black flex items-center justify-center'
+            onClick={() => setShowChat(!showChat)}
+          >
+            {showChat ? '✕' : '💬'}
           </button>
         </div>
 
@@ -889,9 +965,9 @@ function Room({ onBack }) {
             <ul className='chatList'>
               {messages.map((msg, index) => {
                 return (
-                  <li key={index} className='flex'>
+                  <li key={index} className='flex' style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     <span className='font-semibold text-sm mr-2 flex-shrink-0' style={{ color: colors[msg.id - 1] }}>{msg.name}:</span>
-                    <span className='text-sm text-slate-800 break-words'>{msg.text}</span>
+                    <span className='text-sm text-slate-800 break-words min-w-0'>{msg.text}</span>
                   </li>)
               })}
               <div ref={messagesEndRef} />
