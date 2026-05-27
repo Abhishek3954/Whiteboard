@@ -44,7 +44,7 @@ function Room({ onBack }) {
 
   const pinchStartDist = useRef(null);
   const pinchStartZoom = useRef(1);
-  const isPinching = useRef(false);
+  const [isPinching, setIsPinching] = useState(false);
 
   const pencilWidthRef = useRef(pencilWidth);
   const pencilColorRef = useRef(pencilColor);
@@ -474,7 +474,7 @@ function Room({ onBack }) {
         e.preventDefault();
         if (isDrawing.current) stopDrawing();
         if (isErasing.current) stopErasing();
-        isPinching.current = true;
+        setIsPinching(true);
         pinchStartDist.current = getTouchDistance(e.touches);
         pinchStartZoom.current = zoomRef.current;
       }
@@ -493,7 +493,7 @@ function Room({ onBack }) {
     const handlePinchEnd = (e) => {
       if (e.touches.length < 2) {
         pinchStartDist.current = null;
-        isPinching.current = false;
+        setIsPinching(false);
       }
     };
 
@@ -706,7 +706,7 @@ function Room({ onBack }) {
               height: '3000px',
               transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: 'center center',
-              transition: (dragging || isPinching.current) ? 'none' : 'transform 0.15s ease-in-out',
+              transition: (dragging || isPinching) ? 'none' : 'transform 0.15s ease-in-out',
             }}
             onMouseDown={(e) => {
               setHovered(null);
@@ -741,7 +741,7 @@ function Room({ onBack }) {
             height: '3000px',
             transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: 'center center',
-            transition: (dragging || isPinching.current) ? 'none' : 'transform 0.15s ease-in-out',
+            transition: (dragging || isPinching) ? 'none' : 'transform 0.15s ease-in-out',
             pointerEvents: 'none',
             zIndex: 2,
           }}
@@ -756,7 +756,7 @@ function Room({ onBack }) {
             height: '3000px',
             transform: `translate(-50%, -50%) translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: 'center center',
-            transition: (dragging || isPinching.current) ? 'none' : 'transform 0.15s ease-in-out',
+            transition: (dragging || isPinching) ? 'none' : 'transform 0.15s ease-in-out',
             pointerEvents: 'none',
             zIndex: 3,
           }}
@@ -764,7 +764,7 @@ function Room({ onBack }) {
 
         {/* Zoom Indicator */}
         <div
-           className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded pointer-events-none"
+           className="fixed top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded pointer-events-none"
            style={{ zIndex: 30 }}
          >
            {Math.round(zoom * 100)}%
@@ -772,7 +772,7 @@ function Room({ onBack }) {
        
          {/* Fit button */}
          <button
-           className="absolute top-2 right-14 bg-black/50 text-white text-xs px-2 py-1 rounded hover:bg-black/70"
+           className="fixed top-2 right-14 bg-black/50 text-white text-xs px-2 py-1 rounded hover:bg-black/70"
            style={{ zIndex: 30 }}
            onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
          >
@@ -856,9 +856,9 @@ function Room({ onBack }) {
       </div>
   
       {/* Overlay */}
-      <div className='absolute inset-0 pointer-events-none' style={{ zIndex: 10 }}>
+      <div className='fixed inset-0 pointer-events-none' style={{ zIndex: 10 }}>
   
-        <div className='pointer-events-none mt-1 md:mt-14'>
+        <div className='pointer-events-none mt-1'>
           <button className='pointer-events-auto font-bold text-xs md:text-2xl bg-red-500 hover:bg-red-400 active:bg-red-600 rounded-lg transition-all mx-2 md:mx-4 my-1 md:my-2 px-2 md:px-4'
             onClick={() => { setConfirmPopup(true); }}>Go Back</button>
 
