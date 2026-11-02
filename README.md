@@ -40,7 +40,7 @@ A real-time collaborative drawing platform deployed on AWS EKS using an automate
 The AWS environment provisions a multi-AZ Virtual Private Cloud hosting an Amazon EKS cluster with private worker nodes, internet-facing load balancing, and secure outbound egress.
 
 <p align="center">
-  <a href="https://raw.githubusercontent.com/Abhishek3954/wb-code/main/App/public/AWS-Infra-diagram%20%283%29-cropped.svg" target="_blank">
+  <a href="https://raw.githubusercontent.com/Abhishek3954/Whiteboard/main/App/public/AWS-Infra-diagram%20%283%29-cropped.svg" target="_blank">
     <img src="App/public/AWS-Infra-diagram%20%283%29-cropped.svg" alt="AWS Cloud Infrastructure" width="100%" />
   </a>
 </p>
@@ -182,7 +182,7 @@ The code repository includes 6 purpose-built GitHub Actions workflows ensuring f
 The complete automated delivery pipeline—from developer push to rolling production rollout—is shown below:
 
 <p align="center">
-  <a href="https://raw.githubusercontent.com/Abhishek3954/wb-code/main/App/public/CI-workflow-diagram%20%282%29-cropped.svg" target="_blank">
+  <a href="https://raw.githubusercontent.com/Abhishek3954/Whiteboard/main/App/public/CI-workflow-diagram%20%282%29-cropped.svg" target="_blank">
     <img src="App/public/CI-workflow-diagram%20%282%29-cropped.svg" alt="CI/CD Pipeline Workflow" width="100%" />
   </a>
 </p>
