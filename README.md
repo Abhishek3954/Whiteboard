@@ -39,7 +39,11 @@ A real-time collaborative drawing platform deployed on AWS EKS using an automate
 
 The AWS environment provisions a multi-AZ Virtual Private Cloud hosting an Amazon EKS cluster with private worker nodes, internet-facing load balancing, and secure outbound egress.
 
-![AWS Cloud Infrastructure](App/public/AWS-Infra-diagram%20%283%29-cropped.svg)
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Abhishek3954/wb-code/main/App/public/AWS-Infra-diagram%20%283%29-cropped.svg" target="_blank">
+    <img src="App/public/AWS-Infra-diagram%20%283%29-cropped.svg" alt="AWS Cloud Infrastructure" width="100%" />
+  </a>
+</p>
 
 ---
 
@@ -50,8 +54,8 @@ The infrastructure and application lifecycle is split across three dedicated Git
 | Repository | Purpose | Primary Technologies |
 |---|---|---|
 | **[`wb-code`](.)** | Application source code, Dockerfiles, GitHub Actions CI workflows, Taskfile | Node.js, React, Docker, GitHub Actions |
-| **[`wb-gitops`](https://github.com/abSketcher/wb-gitops)** | Kubernetes manifests, Kustomize overlays, ArgoCD platform charts | K8s, Kustomize, ArgoCD, Helm |
-| **[`wb-infra`](https://github.com/abSketcher/wb-infra)** | Cloud infrastructure as code, IAM roles, cluster provisioning | Terraform, AWS, Helm |
+| **[`wb-gitops`](https://github.com/Abhishek3954/wb-gitops)** | Kubernetes manifests, Kustomize overlays, ArgoCD platform charts | K8s, Kustomize, ArgoCD, Helm |
+| **[`wb-infra`](https://github.com/Abhishek3954/wb-infra)** | Cloud infrastructure as code, IAM roles, cluster provisioning | Terraform, AWS, Helm |
 
 ---
 
@@ -177,7 +181,11 @@ The code repository includes 6 purpose-built GitHub Actions workflows ensuring f
 
 The complete automated delivery pipeline—from developer push to rolling production rollout—is shown below:
 
-![CI/CD Pipeline Workflow](App/public/CI-workflow-diagram%20%281%29-cropped.svg)
+<p align="center">
+  <a href="https://raw.githubusercontent.com/Abhishek3954/wb-code/main/App/public/CI-workflow-diagram%20%282%29-cropped.svg" target="_blank">
+    <img src="App/public/CI-workflow-diagram%20%282%29-cropped.svg" alt="CI/CD Pipeline Workflow" width="100%" />
+  </a>
+</p>
 
 ### Pipeline Breakdown
 
