@@ -1,6 +1,4 @@
-# Whiteboard — Cloud-Native GitOps & Infrastructure Platform
-
-A real-time collaborative drawing platform deployed on AWS EKS using an automated GitOps delivery pipeline and codified infrastructure.
+# A real-time collaborative drawing platform deployed on AWS EKS using an automated GitOps delivery pipeline and infrastructure as code.
 
 > **About the Application**: The workload is a 3-tier web application comprising a React (Vite/Tailwind) single-page frontend served by unprivileged Nginx, a Node.js/Express WebSocket backend supporting real-time canvas synchronization, and an in-cluster MongoDB database. **The primary purpose of this project is demonstrating modern DevOps, cloud infrastructure, and GitOps lifecycle management.**
 
@@ -12,14 +10,14 @@ A real-time collaborative drawing platform deployed on AWS EKS using an automate
 
 - [Cloud Infrastructure Architecture](#cloud-infrastructure-architecture)
 - [Repository Structure](#repository-structure)
-- [Cloud Infrastructure — Terraform (`wb-infra`)](#cloud-infrastructure--terraform-wb-infra)
+- [Cloud Infrastructure - Terraform (`wb-infra`)](#cloud-infrastructure--terraform-wb-infra)
   - [Two-Phase Provisioning](#two-phase-provisioning)
   - [Networking & VPC](#networking--vpc)
   - [EKS Cluster Configuration](#eks-cluster-configuration)
   - [IAM & EKS Pod Identity](#iam--eks-pod-identity)
   - [Secrets Management & Remote State](#secrets-management--remote-state)
   - [ArgoCD Bootstrap & Teardown Guard](#argocd-bootstrap--teardown-guard)
-- [Kubernetes Platform — GitOps (`wb-gitops`)](#kubernetes-platform--gitops-wb-gitops)
+- [Kubernetes Platform - (`wb-manifests`)](#kubernetes-platform---wb-manifests)
   - [App-of-Apps Pattern](#app-of-apps-pattern)
   - [Workloads & Pod Security](#workloads--pod-security)
   - [Platform Addons & Observability](#platform-addons--observability)
@@ -54,14 +52,14 @@ The infrastructure and application lifecycle is split across three dedicated Git
 | Repository | Purpose | Primary Technologies |
 |---|---|---|
 | **[`wb-code`](.)** | Application source code, Dockerfiles, GitHub Actions CI workflows, Taskfile | Node.js, React, Docker, GitHub Actions |
-| **[`wb-gitops`](https://github.com/Abhishek3954/wb-gitops)** | Kubernetes manifests, Kustomize overlays, ArgoCD platform charts | K8s, Kustomize, ArgoCD, Helm |
+| **[`wb-manifests`](https://github.com/Abhishek3954/wb-manifests)** | Kubernetes manifests, Kustomize overlays, ArgoCD platform charts | K8s, Kustomize, ArgoCD, Helm |
 | **[`wb-infra`](https://github.com/Abhishek3954/wb-infra)** | Cloud infrastructure as code, IAM roles, cluster provisioning | Terraform, AWS, Helm |
 
 ---
 
 ## Cloud Infrastructure — Terraform (`wb-infra`)
 
-All AWS resources are codified with Terraform (>= 1.10, AWS Provider ~6.0) using official community modules. The environment is 100% reproducible: `terraform apply` provisions the complete stack from VPC to running ArgoCD apps, while `terraform destroy` cleanly tears it down without leaving orphaned cloud resources.
+All AWS resources are codified with Terraform using official community modules. The environment is 100% reproducible: `terraform apply` provisions the complete stack from VPC to running ArgoCD apps, while `terraform destroy` cleanly tears it down without leaving orphaned cloud resources.
 
 ### Two-Phase Provisioning
 
@@ -104,7 +102,7 @@ Cluster workloads use **EKS Pod Identity** (`pods.eks.amazonaws.com`) rather tha
 | `myapp-eso` | `external-secrets` | `external-secrets` | Read access to target AWS Secrets Manager ARN |
 | `myapp-lbc` | `aws-load-balancer-controller` | `kube-system` | AWS Load Balancer Controller policy (ELB, Target Groups, EC2) |
 | `{cluster}-ebs-csi` | `ebs-csi-controller-sa` | `kube-system` | Managed `AmazonEBSCSIDriverPolicy` |
-| `github-actions-ecr` | N/A (GitHub OIDC) | CI Runner | ECR authorization + push permissions scoped to `whiteboard/*` |
+| `github-actions-ecr` | N/A (GitHub OIDC) | CI Runner | ECR authorization + push permissions scoped to `Whiteboard/:ref:refs/heads/main` |
 
 ### Secrets Management & Remote State
 
@@ -118,7 +116,7 @@ Cluster workloads use **EKS Pod Identity** (`pods.eks.amazonaws.com`) rather tha
 
 ---
 
-## Kubernetes Platform — GitOps (`wb-gitops`)
+## Kubernetes Platform - (`wb-manifests`)
 
 Cluster resources are declaratively managed by [ArgoCD](https://argo-cd.readthedocs.io/) using GitOps reconciliation with automated prune, sync, and self-healing.
 
@@ -195,8 +193,8 @@ The complete automated delivery pipeline—from developer push to rolling produc
 2. **Keyless AWS Authentication**: Uses GitHub OIDC federation to request temporary STS credentials for role `github-actions-ecr` (no static keys).
 3. **Parallel Docker Builds (Matrix)**: Builds frontend and backend container images in parallel, tagging each with the short commit SHA.
 4. **Vulnerability Scanning (Trivy)**: Scans built images for CRITICAL CVEs and exposed credentials before publishing.
-5. **Publish & GitOps Handoff**: Pushes container images to AWS ECR, checks out `wb-gitops`, updates image tags in `overlays/aws/kustomization.yaml`, and commits with a concurrency retry loop.
-6. **ArgoCD Reconciliation**: ArgoCD detects the new commit in `wb-gitops` and initiates an automated, zero-downtime rolling update in EKS.
+5. **Publish & GitOps Handoff**: Pushes container images to AWS ECR, checks out `wb-manifests`, updates image tags in `overlays/aws/kustomization.yaml`, and commits with a concurrency retry loop.
+6. **ArgoCD Reconciliation**: ArgoCD detects the new commit in `wb-manifests` and initiates an automated, zero-downtime rolling update in EKS.
 
 ### OIDC Authentication (Zero AWS Secrets)
 
