@@ -41,14 +41,6 @@ jobs:
         if: steps.changes.outputs.src != 'true'
         run: echo "No changes detected in ${{ matrix.context }}. Skipping build and deployment."
 
-
-      - name: Show OIDC claims
-        run: |
-            TOKEN=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
-            echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+' \
-            | awk '{while(length($0)%4)$0=$0"="; print}' | base64 -d | jq '{sub, aud, repository}'
-
       - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         if: steps.changes.outputs.src == 'true'
         with:
