@@ -1,3 +1,7 @@
+**wb-code**  
+[wb-infra](https://github.com/Abhishek3954/wb-infra) — AWS infrastructure as code  
+[wb-manifests](https://github.com/Abhishek3954/wb-manifests) — Kubernetes platform manifests
+
 # A real-time collaborative drawing platform deployed on AWS EKS using an automated GitOps delivery pipeline and infrastructure as code.
 
 > **About the Application**: The workload is a 3-tier web application comprising a React (Vite/Tailwind) single-page frontend served by unprivileged Nginx, a Node.js/Express WebSocket backend supporting real-time canvas synchronization, and an in-cluster MongoDB database. **The primary purpose of this project is demonstrating modern DevOps, cloud infrastructure, and GitOps lifecycle management.**
