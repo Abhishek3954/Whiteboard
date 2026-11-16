@@ -126,18 +126,23 @@ Cluster resources are declaratively managed by [ArgoCD](https://argo-cd.readthed
 
 ### App-of-Apps Pattern
 
-The `platform/` Helm chart configures the root ArgoCD application, which stamps out 6 sub-applications orchestrated via sync waves:
+The `platform/` Helm chart configures the root ArgoCD application, which stamps out 7 sub-applications orchestrated via sync waves. Lower waves run first; Argo CD waits for a wave to become healthy before proceeding, while applications in the same wave can sync concurrently.
 
 ```
 Sync Wave 0: Foundational Platform
   ├── aws-load-balancer-controller (Helm v3.6.1, kube-system)
   ├── external-secrets (Helm v2.13.0, CRDs installed, external-secrets)
-  └── loki (Helm v7.5.0, SingleBinary, 7-day retention, logging)
 
-Sync Wave 1: Workloads & Monitoring
-  ├── myapp (Kustomize overlays/aws, namespace: myapp)
-  ├── alloy (Helm v1.15.0, DaemonSet log collector, logging)
+Sync Wave 1: Observability Services
+  ├── loki (Helm v7.5.0, SingleBinary, 7-day retention, logging)
+  ├── tempo (Helm v3.2.1, tracing)
   └── prometheus-stack (Helm v92.13.0, Prometheus + Grafana, monitoring)
+
+Sync Wave 2: Log Collection
+  └── alloy (Helm v1.15.0, DaemonSet log collector, logging)
+
+Sync Wave 3: Application Workload
+  └── myapp (Kustomize overlays/aws, namespace: myapp)
 ```
 
 ### Workloads & Pod Security
@@ -151,7 +156,7 @@ The application namespace `myapp` enforces **Pod Security Standards: `restricted
 
 - **Ingress Controller**: AWS Load Balancer Controller automatically provisions and reconfigures AWS Application Load Balancers from Kubernetes `Ingress` specs.
 - **Log Aggregation**: Grafana Loki (SingleBinary mode with 10Gi filesystem persistence) fed by Grafana Alloy running as a cluster DaemonSet scraping container runtimes.
-- **Metrics & Dashboards**: `kube-prometheus-stack` collects node and container metrics with Grafana pre-provisioned with Loki datasource connectivity.
+- **Metrics & Dashboards**: `kube-prometheus-stack` collects node and container metrics, with Grafana pre-provisioned with Loki and Tempo data sources. Tempo provides trace querying.
 
 ### External Secrets Sync
 
