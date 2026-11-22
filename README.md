@@ -133,18 +133,17 @@ Sync Wave 0: Foundational Platform
   ├── aws-load-balancer-controller (Helm v3.6.1, kube-system)
   ├── external-secrets (Helm v2.13.0, CRDs installed, external-secrets)
 
-Sync Wave 1: Secret Store and Observability Services
-  ├── ClusterSecretStore (AWS Secrets Manager)
+Sync Wave 1: Observability Services
   ├── loki (Helm v7.5.0, SingleBinary, 7-day retention, logging)
   ├── tempo (Helm v3.2.1, tracing)
   └── prometheus-stack (Helm v92.13.0, Prometheus + Grafana, monitoring)
 
-Sync Wave 2: Telemetry and Alerting
-  ├── alloy (Helm v1.15.0, DaemonSet log collector, logging)
-  └── alert-agent (summarizes warning and critical alerts for Slack)
+Sync Wave 2: Log Collection
+  └── alloy (Helm v1.15.0, DaemonSet log collector, logging)
 
-Sync Wave 3: Application Workload
-  └── myapp (Kustomize overlays/aws, namespace: myapp)
+Sync Wave 3: Alerting and Application Workload
+  ├── alert-agent (summarizes warning and critical alerts for Slack)
+  └── myapp (Kustomize overlays/aws, including the ClusterSecretStore)
 ```
 
 ### Workloads & Pod Security
