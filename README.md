@@ -126,24 +126,27 @@ Cluster resources are declaratively managed by [ArgoCD](https://argo-cd.readthed
 
 ### App-of-Apps Pattern
 
-The `platform/` Helm chart configures the root ArgoCD application, which stamps out 7 sub-applications orchestrated via sync waves. Lower waves run first; Argo CD waits for a wave to become healthy before proceeding, while applications in the same wave can sync concurrently.
+The `platform/` Helm chart configures the root ArgoCD application, which stamps out 9 child applications orchestrated via sync waves. Lower waves run first; Argo CD waits for a wave to become healthy before proceeding, while applications in the same wave can sync concurrently.
 
 ```
 Sync Wave 0: Foundational Platform
   ├── aws-load-balancer-controller (Helm v3.6.1, kube-system)
   ├── external-secrets (Helm v2.13.0, CRDs installed, external-secrets)
 
-Sync Wave 1: Observability Services
+Sync Wave 1: Secret Store and Observability Services
+  ├── cluster-secret-store (ClusterSecretStore for AWS Secrets Manager)
   ├── loki (Helm v7.5.0, SingleBinary, 7-day retention, logging)
   ├── tempo (Helm v3.2.1, tracing)
+
+Sync Wave 2: Log Collection and Alerting
+  ├── alloy (Helm v1.15.0, DaemonSet log collector, logging)
+  └── alert-agent (summarizes warning and critical alerts for Slack)
+
+Sync Wave 3: Monitoring
   └── prometheus-stack (Helm v92.13.0, Prometheus + Grafana, monitoring)
 
-Sync Wave 2: Log Collection
-  └── alloy (Helm v1.15.0, DaemonSet log collector, logging)
-
-Sync Wave 3: Alerting and Application Workload
-  ├── alert-agent (summarizes warning and critical alerts for Slack)
-  └── myapp (Kustomize overlays/aws, including the ClusterSecretStore)
+Sync Wave 4: Application Workload
+  └── myapp (Kustomize overlays/aws, namespace: myapp)
 ```
 
 ### Workloads & Pod Security
@@ -257,7 +260,7 @@ task test:act-push
 | **Cloud Provider** | AWS (`ap-south-1`): VPC, EKS, ECR, ALB, Secrets Manager, EBS gp3 |
 | **Infrastructure as Code** | Terraform (>= 1.10), AWS Provider (~6.0), S3 Native Locking |
 | **Kubernetes Orchestration** | EKS (1.32), Kustomize, Pod Security Standards (`restricted`), HPA, PDB |
-| **GitOps Engine** | ArgoCD (App-of-Apps pattern, 4-wave deployment, automated self-healing) |
+| **GitOps Engine** | ArgoCD (App-of-Apps pattern, 5-wave deployment, automated self-healing) |
 | **Cluster Ingress & Networking**| AWS Load Balancer Controller (ALB), VPC-CNI Network Policies |
 | **Identity & Access** | EKS Pod Identity (in-cluster), GitHub OIDC Federation (CI runner) |
 | **Secrets Engine** | AWS Secrets Manager synchronized via External Secrets Operator (ESO) |
