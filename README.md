@@ -194,8 +194,8 @@ The code repository includes 6 purpose-built GitHub Actions workflows ensuring f
 The complete automated delivery pipeline—from developer push to rolling production rollout—is shown below:
 
 <p align="center">
-  <a href="https://raw.githubusercontent.com/Abhishek3954/Whiteboard/main/App/public/Screenshot%20CI-diagram.png" target="_blank">
-    <img src="App/public/Screenshot%20CI-diagram.png" alt="CI/CD Pipeline Workflow" width="100%" />
+  <a href="https://raw.githubusercontent.com/Abhishek3954/Whiteboard/main/App/public/CI-workflow-diagram.png" target="_blank">
+    <img src="App/public/CI-workflow-diagram.png" alt="CI/CD Pipeline Workflow" width="100%" />
   </a>
 </p>
 
